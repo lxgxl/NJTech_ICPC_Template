@@ -1,0 +1,80 @@
+\documentclass[12pt,a4paper,oneside]{book}
+\usepackage{listings}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\setmonofont{Consolas}
+\setsansfont{Consolas}
+\pagestyle{fancy}
+\lstset{
+    language    = c++,
+    breaklines  = true,
+    captionpos  = b,
+    tabsize     = 4,
+    numbers     = left,
+    columns     = fullflexible,
+    keepspaces  = true,
+    commentstyle = \color[RGB]{0,128,0},
+    keywordstyle = \color[RGB]{0,0,255},
+    basicstyle   = \small\ttfamily,
+    rulesepcolor = \color{red!20!green!20!blue!20},
+    showstringspaces = false,
+}
+\title{
+    \begin{center}
+        \includegraphics[width=4in]{logo.png}
+        \\ 
+        \textbf{ICPC Template Manual}
+    \end{center}
+}
+\author{
+    \includegraphics[width=3cm]{author.png}
+    \\
+    \textbf{作者:贺梦杰}
+}
+\date{\today}
+
+\begin{document}
+    \maketitle
+    \tableofcontents
+
+    \chapter{基础}
+    \include{tex/Basic/}
+    %基础部分
+
+    \chapter{搜索}
+    \include{tex/Search/}
+    %搜索部分
+
+    \chapter{动态规划}
+    \include{tex/DynamicProgramming/}
+    %动态规划
+
+    \chapter{字符串}
+    \include{tex/String/StringTest}
+    %字符串相关
+
+    \chapter{数据结构}
+    \include{tex/DataStructures/SegmentTree}
+    \include{tex/DataStructures/BinaryIndexedTree}
+    %数据结构
+
+    \chapter{图论}
+    \include{tex/GraphTheory/}
+    %图论
+
+    \chapter{数学}
+    \include{tex/Math/}
+    %数学
+
+    \chapter{计算几何}
+    \include{tex/ComputationalGeometry/}
+    %计算几何
+
+    \chapter{其他}
+    \include{tex/Others/}
+    %其他
+
+\end{document}
