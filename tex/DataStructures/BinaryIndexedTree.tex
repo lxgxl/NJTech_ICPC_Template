@@ -1,0 +1,171 @@
+\section{树状数组}
+\emph{推荐阅读：https://www.cnblogs.com/RabbitHu/p/BIT.html}
+\subsection{单点修改，区间查询}
+\begin{lstlisting}
+#define N 1000100
+long long c[N];
+int n,q;
+int lowbit(int x)
+{
+    return x&(-x);
+}
+void change(int x,int v)
+{
+    while(x<=n)
+    {
+        c[x]+=v;
+        x+=lowbit(x);
+    }
+}
+long long getsum(int x)
+{
+    long long ans=0;
+    while(x>=1)
+    {
+        ans+=c[x];
+        x-=lowbit(x);
+    }
+    return ans;
+}
+\end{lstlisting}
+\emph{例题：https://loj.ac/problem/130}
+
+\subsection{区间修改，单点查询}
+引入差分数组来解决树状数组的区间更新
+\begin{lstlisting}
+//初始化
+change(i,cur-pre);
+//区间修改
+change(l,x);
+change(r+1,-x);
+//单点查询
+getsum(x)
+\end{lstlisting}
+\emph{例题：https://loj.ac/problem/131}
+
+\subsection{区间修改，区间查询}
+\begin{lstlisting}
+//初始化
+change(c1,i,cur-pre);
+change(c2,i,i*(cur-pre));
+//为什么这么写？ 你需要写一下前缀和的表达式
+//区间修改
+change(c1,l,x);
+change(c2,l,l*x);
+change(c1,r+1,-x);
+change(c2,r+1,-(r+1)*x);
+//区间查询
+temp1=l*getsum(c1,l-1)-getsum(c2,l-1);
+temp2=(r+1)*getsum(c1,r)-getsum(c2,r);
+ans=temp2-temp1
+\end{lstlisting}
+\emph{例题：https://loj.ac/problem/132}
+
+\section{二维树状数组}
+\subsection{单点修改，区间查询}
+\begin{lstlisting}
+#define N 5050
+long long tree[N][N];
+long long n,m;
+long long lowbit(long long x)
+{
+    return x&(-x);
+}
+void change(long long x,long long y,long long val)
+{
+    long long init_y=y;
+    //这里注意n,m的限制
+    while(x<=n)
+    {
+        y=init_y;
+        while(y<=m)
+        {
+            tree[x][y]+=val;
+            y+=lowbit(y);
+        }
+        x+=lowbit(x);
+    }
+}
+long long getsum(long long x,long long y)
+{
+    long long ans=0;
+    long long init_y=y;
+    while(x>=1)
+    {
+        y=init_y;
+        while(y>=1)
+        {
+            ans+=tree[x][y];
+            y-=lowbit(y);
+        }
+        x-=lowbit(x);
+    }
+    //这里画图理解
+    return ans;
+}
+//初始化
+change(x,y,k);
+//二维前缀和
+ans = getsum(c,d)+getsum(a-1,b-1)-getsum(a-1,d)-getsum(c,b-1);
+\end{lstlisting}
+\emph{例题：https://loj.ac/problem/133}
+
+\subsection{区间修改，区间查询}
+\begin{lstlisting}
+#define N 2050
+long long t1[N][N];
+long long t2[N][N];
+long long t3[N][N];
+long long t4[N][N];
+long long n,m;
+long long lowbit(long long x)
+{
+    return x&(-x);
+}
+long long getsum(long long x,long long y)
+{
+    long long ans=0;
+    long long init_y=y;
+    long long init_x=x;
+    while(x>=1)
+    {
+        y=init_y;
+        while(y>=1)
+        {
+            ans+=(init_x+1)*(init_y+1)*t1[x][y];
+            ans-=(init_y+1)*t2[x][y];
+            ans-=(init_x+1)*t3[x][y];
+            ans+=t4[x][y];
+            y-=lowbit(y);
+        }
+        x-=lowbit(x);
+    }
+    return ans;
+}
+void change(long long x,long long y,long long val)
+{
+    long long init_x=x;
+    long long init_y=y;
+    while(x<=n)
+    {
+        y=init_y;
+        while(y<=m)
+        {
+            t1[x][y]+=val;
+            t2[x][y]+=init_x*val;
+            t3[x][y]+=init_y*val;
+            t4[x][y]+=init_x*init_y*val;
+            y+=lowbit(y);
+        }
+        x+=lowbit(x);
+    }
+}
+//区间修改
+change(c+1,d+1,x);
+change(a,b,x);
+change(a,d+1,-x);
+change(c+1,b,-x);
+//区间查询
+ans=getsum(c,d)+getsum(a-1,b-1)-getsum(c,b-1)-getsum(a-1,d);
+\end{lstlisting}
+\emph{例题：https://loj.ac/problem/135}
