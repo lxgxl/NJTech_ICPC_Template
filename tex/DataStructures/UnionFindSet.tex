@@ -1,0 +1,39 @@
+\section{并查集}
+\begin{lstlisting}
+#define MAX 1010
+struct node
+{
+    int par;
+    //int rank;
+    //路径压缩后 rank=1或2 rank失去了意义
+    int data;
+};
+node ns[MAX];
+void Init()
+{
+    for (int i = 1; i < MAX; i++)
+    {
+        ns[i].par = i;
+    }
+}
+int Find(int i)
+{
+    if (ns[i].par == i)
+    {
+        //返回根结点
+        return i;
+    }
+    ns[i].par = Find(ns[i].par);
+    //路径压缩
+    return ns[i].par;
+}
+void Union(int i, int j)
+{
+    int pi = Find(i);
+    int pj = Find(j);
+    if (pi != pj)
+    {
+        ns[pi].par = pj;
+    }
+}
+\end{lstlisting}

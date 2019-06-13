@@ -1,0 +1,111 @@
+\section{快速幂}
+\subsubsection{递归形式}
+\begin{lstlisting}
+#define mod 1000000007
+long long quick_pow(long long a, long long b)
+{
+    if (b == 0)
+        return 1;
+    long long temp = quick_pow(a, b >> 1);
+    if (b & 1)
+        return a % mod * temp % mod * temp % mod;
+    else
+        return temp % mod * temp % mod; //快速幂
+}
+\end{lstlisting}
+
+\subsubsection{循环形式}
+\textbf{如果递归形式栈溢出 可使用循环形式}
+\begin{lstlisting}
+#define mod 1000000007
+long long quick_pow(long long x,long long n)
+{
+    long long ret=1;
+    long long temp=x%mod;
+    while(n)
+    {
+        if(n&1)
+        {
+            ret=(ret*temp)%mod;
+        }
+        temp=(temp*temp)%mod; //偶次
+        n>>=1;
+    }
+    return ret;//结果
+}
+\end{lstlisting}
+
+\section{矩阵快速幂}
+\begin{lstlisting}
+#define N 105
+int m;//矩阵阶
+struct matrix
+{
+    long long a[N][N];
+    matrix(){memset(a, 0, sizeof(a));}
+};
+matrix matrix_mul(matrix m1, matrix m2)
+{
+    matrix ans;
+    for (int k = 0; k < m; k++)
+    {
+        for (int i = 0; i < m; i++)
+        {
+            if (m1.a[i][k]) //剪枝
+            {
+                for (int j = 0; j < m; j++)
+                {
+                    if (m2.a[k][j]) //剪枝
+                    {
+                        ans.a[i][j] = (ans.a[i][j] + (m1.a[i][k] * m2.a[k][j]) % mod) % mod;
+                    }
+                }
+            }
+        }
+    }
+    return ans;
+}
+matrix quick_pow_matrix(matrix m1, long long k)
+{
+    matrix ans;//递归写法 可能堆栈溢出
+    for (int i = 0; i < m; i++)
+        ans.a[i][i] = 1;
+    while (k)
+    {
+        if (k & 1)
+            ans = matrix_mul(ans, m1);
+        m1 = matrix_mul(m1, m1);
+        k >>= 1;
+    }
+    return ans;
+}
+\end{lstlisting}
+
+\section{组合数取模}
+\begin{lstlisting}
+#define N 100010
+#define mod 1000000007
+#define ll long long
+ll fac[N];//阶乘
+ll inv[N];//阶乘逆元
+void init()
+{
+    fac[0]=1;
+    for(int i=1;i<N;i++)
+    {
+        fac[i]=(fac[i-1]*i)%mod;
+    }
+    inv[N-1]=quick_pow(fac[N-1],mod-2);//费马小定理 求逆元a^(p-1)%p=1 a的逆元为a^(p-2)
+    //如果 ax%p=1 ， 那么x的最小正整数解就是 a 模p的逆元
+    for(int i=N-2;i>=0;i--)
+    {
+        inv[i]=inv[i+1]*(i+1)%mod;
+    }
+}
+ll C(ll a,ll b)
+{
+    if(b>a) return 0;
+    if(b==0) return 1;
+    return fac[a]*inv[b]%mod*inv[a-b]%mod;
+}
+\end{lstlisting}
