@@ -1,0 +1,69 @@
+\section{强连通分量}
+\subsection{Tarjan}
+\begin{lstlisting}
+const int N = 10500;
+vector<int> G[N];
+bool vis[N];
+int dfn[N];
+int low[N];
+int cnt;
+stack<int> s;
+int n, m;
+void init()
+{
+    memset(vis, 0, sizeof(vis));
+    memset(dfn, 0, sizeof(dfn));
+    cnt = 0;
+}
+void DFS(int cur)
+{
+    dfn[cur] = low[cur] = ++cnt;
+    s.push(cur);
+    vis[cur] = 1;
+    for (auto ele : G[cur])
+    {
+        if (!dfn[ele])
+        {
+            DFS(ele);
+            low[cur] = min(low[cur], low[ele]);
+        }
+        else if (vis[ele])
+        {
+            low[cur] = min(low[cur], dfn[ele]);
+        }
+    }
+    if (dfn[cur] == low[cur])
+    {
+        while (1)
+        {
+            int t = s.top();
+            s.pop();
+            vis[t] = 0;
+            if (t == cur)
+                break;
+        }
+    }
+}
+\end{lstlisting}
+\emph{例题：https://www.luogu.org/problemnew/show/P2863}
+
+\subsection{缩点DAG}
+利用强连通分量缩点为有向无环图\\
+Tarjan加入染色
+\begin{lstlisting}
+if (dfn[cur] == low[cur])
+{
+    sum++;
+    while (1)
+    {
+        int t = s.top();
+        s.pop();
+        color[t] = sum;
+        pnum[sum]++;
+        vis[t] = 0;
+        if (t == cur)
+            break;
+    }
+}
+\end{lstlisting}
+\emph{例题：https://www.luogu.org/problemnew/show/P2341}

@@ -1,0 +1,61 @@
+\section{KMP}
+\begin{lstlisting}
+int *Get_next(string str)
+{
+    int *ptr = new int[str.length()];
+    //申请next数组
+    ptr[0] = 0;             //首位next值为0
+    int i = 1;              //初始化
+    int j = 0;              //初始化
+    int len = str.length(); //模式串长度
+    while (i < len)
+    {
+        if (str[i] == str[j])
+        {
+            ptr[i] = j + 1;
+            j++;
+            i++; //确定前缀后缀相同的长度
+        }
+        else
+        {
+            //不同时
+            if (j != 0)
+                j = ptr[j - 1]; //j回到前一个字符的next值位置
+            else
+            {
+                ptr[i] = 0; //回到模式串的第一个字符
+                i++;
+            }
+        }
+    }
+    return ptr;
+}
+int KMP(string s, string p)
+{
+    int *next = Get_next(p);
+    //获得next数组
+    int i = 0;
+    int j = 0;
+    int len = s.length();
+    while (i < len)
+    {
+        if (s[i] == p[j])
+        {
+            i++;
+            j++; //匹配
+            if (j >= p.length())
+                return i - j;
+        }
+        else
+        {
+            //字符不相同回到前一个字符的next值位置
+            if (j != 0)
+                j = next[j - 1];
+            else
+                i++;
+        }
+    }
+    return -1;
+}
+\end{lstlisting}
+\emph{来源：https://www.bilibili.com/video/av47471886?from=search\&seid=4651914725266859344}

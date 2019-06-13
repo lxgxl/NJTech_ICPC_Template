@@ -1,0 +1,110 @@
+\section{最小生成树}
+\subsection{Prim}
+\begin{lstlisting}
+#define inf 0x3f3f3f3f
+const int N = 2e5 + 20;
+struct node
+{
+    long long u, v, w;
+    node(int uu, int vv, int ww) : u(uu), v(vv), w(ww)
+    {
+    }
+    bool operator<(node n) const
+    {
+        return w > n.w;
+    }
+};
+long long n, m;
+priority_queue<node> q;
+vector<pair<long long, long long>> G[N];
+bool vis[N];
+long long Prim()
+{
+    long long ans = 0;
+    for (auto ele : G[1])
+    {
+        q.push(node(1, ele.first, ele.second));
+    }
+    memset(vis, 0, sizeof(vis));
+    vis[1] = 1;
+    int t = n - 1;
+    while (t--)
+    {
+        node top = q.top();
+        q.pop();
+        while (vis[top.v])
+        {
+            top = q.top();
+            q.pop();
+        }
+        ans += top.w;
+        cout<<ans<<endl;
+        vis[top.v] = 1;
+        for (auto ele : G[top.v])
+        {
+            q.push(node(top.v, ele.first, ele.second));
+        }
+    }
+    return ans;
+}
+\end{lstlisting}
+
+\subsection{Kruskal}
+基于并查集
+\begin{lstlisting}
+const long long MAXN = 2e5 + 20;
+struct Edge
+{
+    long long u, v, w;
+    bool operator<(Edge e) const
+    {
+        return w > e.w;
+    }
+    Edge(long long uu, long long vv, long long ww) : u(uu), v(vv), w(ww)
+    {
+    }
+};
+long long fa[MAXN];
+long long Find(long long x)
+{
+    if (fa[x] == -1)
+        return x;
+    else
+        return fa[x] = Find(fa[x]);
+}
+priority_queue<Edge> q;
+long long n; //点
+long long m; //边
+long long Kruskal()
+{
+    memset(fa, -1, sizeof(fa));
+    long long cnt = 0;
+    long long ans = 0;
+    long long fu, fv;
+    while (!q.empty())
+    {
+        Edge now = q.top();
+        q.pop();
+        fu = Find(now.u);
+        fv = Find(now.v);
+        if (fu != fv)
+        {
+            //cout<<"add:"<<now.u<<" "<<now.v<<" "<<now.w<<endl;
+            ans += now.w;
+            fa[fu] = fv;
+            cnt++;
+        }
+        if (cnt == n - 1)
+            break;
+    }
+    if (cnt < n - 1)
+        return -1;
+    return ans;
+}
+\end{lstlisting}
+\emph{例题：https://loj.ac/problem/123}
+
+\subsection{次小生成树}
+倍增LCA维护最小生成树\\
+代码过长......\\
+\emph{例题：https://loj.ac/problem/10133}

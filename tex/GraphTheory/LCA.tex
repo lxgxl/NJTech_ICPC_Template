@@ -1,0 +1,60 @@
+\section{最近公共祖先}
+\subsection{倍增}
+\begin{lstlisting}
+#define N 500050
+int depth[N];
+int fa[N][20];
+vector<int> v[N];
+int lg[N]; //log2(n) floor
+int n, m, s;
+void init()
+{
+    lg[0] = -1;
+    //floor
+    for (int i = 1; i <= n; i++)
+    {
+        lg[i] = lg[i >> 1] + 1;
+    }
+}
+void DFS(int cur, int pre)
+{
+    depth[cur] = depth[pre] + 1;
+    fa[cur][0] = pre;
+    for (int i = 1; (1 << i) <= depth[cur]; i++)
+    {
+        fa[cur][i] = fa[fa[cur][i - 1]][i - 1];
+    }
+    for (auto ele : v[cur])
+    {
+        if (ele != pre)
+        {
+            DFS(ele, cur);
+        }
+    }
+}
+int LCA(int a, int b)
+{
+    // assume depth[a]>=depth[b]
+    if (depth[a] < depth[b])
+        swap(a, b);
+    // reset to the same depth
+    while (depth[a] > depth[b])
+    {
+        a = fa[a][lg[depth[a] - depth[b]]];
+        //up
+    }
+    if (a == b)
+        return a;
+    for (int k = lg[depth[a]] + 1; k >= 0; k--)
+    {
+        if (fa[a][k] != fa[b][k])
+        {
+            a = fa[a][k];
+            b = fa[b][k];
+            //up
+        }
+    }
+    return fa[a][0];
+}
+\end{lstlisting}
+\emph{例题：https://www.luogu.org/problemnew/show/P3379}
