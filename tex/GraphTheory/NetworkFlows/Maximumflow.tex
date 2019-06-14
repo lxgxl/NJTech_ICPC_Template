@@ -1,0 +1,171 @@
+\section{网络流}
+\subsection{最大流}
+\subsubsection{Edmonds Karp}
+\begin{lstlisting}
+#define ll long long
+#define inf 0x3f3f3f3f
+const int M = 205;
+ll c[M][M];
+int pre[M];
+ll flow[M];
+int n, m;
+ll BFS(int s, int t)
+{
+    queue<int> q;
+    memset(pre, -1, sizeof(pre));
+    flow[s] = inf;
+    pre[s] = 0;
+    q.push(s);
+    while (!q.empty())
+    {
+        int u = q.front();
+        q.pop();
+        if (u == t)
+        {
+            break;
+        }
+        for (int v = 1; v <= m; v++)
+        {
+            if (c[u][v] > 0 && pre[v] == -1&&v!=s)
+            {
+                pre[v] = u;
+                flow[v] = min(c[u][v], flow[u]);
+                q.push(v);
+            }
+        }
+    }
+    if (pre[t] == -1)
+        return -1;
+    return flow[t];
+}
+ll Edmonds_Karp(int s, int t)
+{
+    ll inc;
+    ll ans = 0;
+    int k, last;
+    while ((inc = BFS(s, t)) != -1)
+    {
+        k = t;
+        while (k != s)
+        {
+            last = pre[k];
+            c[last][k] -= inc;
+            c[k][last] += inc;
+            k = last;
+        }
+        ans += inc;
+        //cout<<"cur:"<<inc<<endl;
+    }
+    return ans;
+}
+\end{lstlisting}
+\emph{例题：https://www.luogu.org/problemnew/show/P2740}
+
+\subsubsection{Dinic}
+\textbf{多路增广，当前弧优化}
+\begin{lstlisting}
+#define inf 0x3f3f3f3f3f
+#define N 1200
+#define M 245000
+#define ll long long
+//反向边的存在 实际边数的两倍
+struct Edge
+{
+    ll to;
+    ll w;
+    ll next;
+};
+Edge edge[M];
+ll dep[N];
+ll head[N];
+ll cur[N]; //当前弧优化
+ll cnt = 0;
+ll n, m;
+void Init()
+{
+    memset(head, -1, sizeof(head));
+}
+void add(ll u, ll v, ll w)
+{
+    edge[cnt].to = v;
+    edge[cnt].w = w;
+    edge[cnt].next = head[u];
+    head[u] = cnt++;
+}
+void Add(ll u, ll v, ll w)
+{
+    add(u, v, w);
+    add(v, u, 0); //反向边
+}
+ll s, t;
+bool BFS()
+{
+    queue<ll> q;
+    memset(dep, -1, sizeof(dep));
+    dep[s] = 0;
+    q.push(s);
+    while (!q.empty())
+    {
+        ll now = q.front();
+        q.pop();
+        for (ll i = head[now]; i != -1; i = edge[i].next)
+        {
+            if (edge[i].w > 0 && dep[edge[i].to] == -1)
+            {
+                dep[edge[i].to] = dep[now] + 1;
+                q.push(edge[i].to);
+            }
+        }
+    }
+    if (dep[t] == -1)
+        return false; //不存在分层图
+    return true;
+}
+ll DFS(ll now, ll flow)
+{
+    if (now == t)
+        return flow;
+    ll used = 0;
+    for (ll &i = cur[now]; i != -1; i = edge[i].next)
+    {
+        //&：当前弧优化
+        if (dep[edge[i].to] == dep[now] + 1 && edge[i].w)
+        {
+            ll inc = DFS(edge[i].to, min(flow - used, edge[i].w));
+            if (inc > 0)
+            {
+                edge[i].w -= inc;
+                edge[i ^ 1].w += inc;
+                used += inc;
+                if (flow == used)
+                    break;
+            }
+        }
+    }
+    if (!used)
+        dep[now] = -1;
+    return used;
+}
+ll Dinic()
+{
+    ll ans = 0;
+    while (BFS())
+    {
+        for (ll i = 1; i <= n; i++)
+        {
+            cur[i] = head[i];
+        }
+        ans += DFS(s, inf);
+    }
+    return ans;
+}
+\end{lstlisting}
+\emph{例题：https://www.luogu.org/problemnew/show/P3376}
+
+\subsubsection{ISAP}
+\begin{lstlisting}    
+\end{lstlisting}
+\subsubsection{HLPP}
+\textbf{最高标号预留推进}
+\begin{lstlisting}
+\end{lstlisting}
