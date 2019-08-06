@@ -1,0 +1,124 @@
+\section{树的直径}
+\subsection{树形DP求树的直径}
+仅能求出直径长度，无法得知路径信息，可处理负权边。
+\begin{lstlisting}
+int dp[N];
+//dp[rt] 以rt为根的子树 从rt出发最远可达距离
+/*
+    对于每个结点x f[x]:经过节点x的最长链长度
+*/
+void DP(int rt)
+{
+    dp[rt]=0;//单点
+    vis[rt]=1;
+    for(int i=head[rt];i;i=nxt[i])
+    {
+        int s=ver[i];
+        if(!vis[s])
+        {
+            DP(s);
+            diameter=max(diameter,dp[rt]+dp[s]+edge[i]);
+            dp[rt]=max(dp[rt],dp[s]+edge[i]);
+        }
+    }
+}
+\end{lstlisting}
+\subsection{两次BFS/DFS求树的直径}
+无法处理负权边，容易记录路径
+\begin{lstlisting}
+void DFS(int start,bool record_path)
+{
+    vis[start]=1;
+    for(int i=head[start];i;i=nxt[i])
+    {
+        int s=ver[i];
+        if(!vis[s])
+        {
+            dis[s]=dis[start]+edge[i];
+            if(record_path) path[s]=i;
+            DFS(s,record_path);
+        }
+    }
+    vis[start]=0;//清理
+}
+\end{lstlisting}
+例题分析
+
+P3629 [APIO2010]巡逻（两种求树直径方法的综合应用）
+
+P1099 树网的核（枚举）
+
+\section{最近公共祖先（LCA）}
+\subsection{树上倍增}
+\begin{lstlisting}
+void BFS()
+{
+    queue<int> q;
+    q.push(1);
+    d[1] = 1;
+    while (!q.empty())
+    {
+        int x = q.front();
+        q.pop();
+        for (int i = head[x]; i; i = nxt[i])
+        {
+            int y = ver[i];
+            if (!d[y])
+            {
+                d[y] = d[x] + 1;
+                fa[y][0] = x;
+                for (int j = 1; j <= k; j++)
+                {
+                    fa[y][j] = fa[fa[y][j - 1]][j - 1];
+                }
+                q.push(y);
+            }
+        }
+    }
+}
+int LCA(int x, int y)
+{
+    if (d[x] < d[y])
+        swap(x, y);
+    for (int i = k; i >= 0; i--)
+        if (d[fa[x][i]] >= d[y])
+            x = fa[x][i];
+    if (x == y)
+        return y;
+    for (int i = k; i >= 0; i--)
+        if (fa[x][i] != fa[y][i])
+            x = fa[x][i], y = fa[y][i];
+    return fa[x][0];
+}
+\end{lstlisting}
+\subsection{Tarjan算法}
+\begin{lstlisting}
+int Find(int x)
+{
+    if (x == fa[x])
+        return x;
+    return fa[x] = Find(fa[x]);
+}
+void Tarjan(int x)
+{
+    vis[x] = 1;
+    for (int i = head[x]; i; i = nxt[i])
+    {
+        int y = ver[i];
+        if (!vis[y])
+        {
+            Tarjan(y);
+            fa[y] = x;
+        }
+    }
+    for (int i = 0; i < q[x].size(); i++)
+    {
+        int y = q[x][i].first, id = q[x][i].second;
+        if (vis[y] == 2)
+            lca[id] = Find(y);
+    }
+    vis[x] = 2;
+}
+\end{lstlisting}
+
+\section{树上差分与LCA的综合应用}

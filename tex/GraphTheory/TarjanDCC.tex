@@ -1,0 +1,189 @@
+\section{Tarjan算法与无向图连通性}
+\subsection{无向图的割点与桥}
+\subsubsection{割边判定法则}
+\begin{lstlisting}
+void Tarjan(int x, int in_edge)
+{
+    dfn[x] = low[x] = ++num;
+    for (int i = head[x]; i; i = nxt[i])
+    {
+        int y = ver[i];
+        if (!dfn[y])
+        {
+            Tarjan(y, i);
+            low[x] = min(low[x], low[y]);
+            if (low[y] > dfn[x])
+            {
+                bridge[i] = bridge[i ^ 1] = true;
+            }
+        }
+        else if (i != (in_edge ^ 1))
+            low[x] = min(low[x], dfn[y]);
+    }
+}
+\end{lstlisting}
+\subsubsection{割点判定法则}
+\begin{lstlisting}
+void Tarjan(int x)
+{
+    dfn[x] = low[x] = ++num;
+    int flag = 0;
+    for (int i = head[x]; i; i = nxt[i])
+    {
+        int y = ver[i];
+        if (!dfn[y])
+        {
+            Tarjan(y);
+            low[x] = min(low[x], low[y]);
+            if (low[y] >= dfn[x])
+            {
+                flag++;
+                if (x != root || flag >= 2)
+                    cut[x] = true;
+            }
+        }
+        else
+            low[x] = min(low[x], dfn[y]);
+    }
+}
+\end{lstlisting}
+
+例题分析
+
+P3469 [POI2008]BLO-Blockade（割点，连通块计数）
+
+\subsection{无向图的双连通分量}
+\subsubsection{边双连通分量e-DCC与其缩点}
+\begin{lstlisting}
+void DFS(int x)
+{
+    color[x] = dcc;
+    for (int i = head[x]; i; i = nxt[i])
+    {
+        int y = ver[i];
+        if (!color[y] && !bridge[i])
+            DFS(y);
+    }
+}
+void e_DCC()
+{
+    dcc = 0;
+    for (int i = 1; i <= n; i++)
+        if (!color[i])
+            ++dcc, DFS(i);
+    totc = 1;
+    for (int i = 2; i <= tot; i++)
+    {
+        int u = ver[i ^ 1], v = ver[i];
+        if (color[u] != color[v])
+            add_c(color[u], color[v]);
+    }
+    origin_bridges = (totc - 1) / 2;
+    k = log2(dcc) + 1;
+}
+\end{lstlisting}
+\subsubsection{点双连通分量v-DCC与其缩点}
+\begin{lstlisting}
+void Tarjan(int x)
+{
+    dfn[x] = low[x] = ++num;
+    int flag = 0;
+    stack[++top] = x;
+    if (x == root && !head[x])
+    {
+        dcc[++cnt].push_back(x);
+        return;
+    }
+    for (int i = head[x]; i; i = nxt[i])
+    {
+        int y = ver[i];
+        if (!dfn[y])
+        {
+            Tarjan(y);
+            low[x] = min(low[x], low[y]);
+            if (low[y] >= dfn[x])
+            {
+                flag++;
+                if (x != root || flag >= 2)
+                    cut[x] = true;
+                cnt++;
+                int z;
+                do
+                {
+                    z = stack[top--];
+                    dcc[cnt].push_back(z);
+                } while (z != y);
+                dcc[cnt].push_back(x);
+            }
+        }
+        else
+            low[x] = min(low[x], dfn[y]);
+    }
+}
+void v_DCC()
+{
+    cnt = 0;
+    top = 0;
+    for (int i = 1; i <= n; i++)
+    {
+        if (!dfn[i])
+            root = i, Tarjan(i);
+    }
+    // 给每个割点一个新的编号(编号从cnt+1开始)
+    num = cnt;
+    for (int i = 1; i <= n; i++)
+        if (cut[i]) new_id[i] = ++num;
+    // 建新图，从每个v-DCC到它包含的所有割点连边
+    tc = 1;
+    for (int i = 1; i <= cnt; i++)
+        for (int j = 0; j < dcc[i].size(); j++) 
+        {
+            int x = dcc[i][j];
+            if (cut[x]) {
+                add_c(i, new_id[x]);
+                add_c(new_id[x], i);
+            }
+            else c[x] = i; // 除割点外，其它点仅属于1个v-DCC
+        }
+}
+\end{lstlisting}
+例题分析
+
+POJ3694 Network（e-DCC缩点，LCA，并查集）
+
+POJ2942 Knights of the Round Table（补图，v-DCC，染色法奇环判定）
+
+\subsection{欧拉路问题}
+欧拉图的判定
+
+无向图连通，所有点度数为偶数。
+
+欧拉路的存在性判定
+
+无向图连通，恰有两个节点度数为奇数，其他节点度数均为偶数
+
+\begin{lstlisting}
+// 模拟系统栈，答案栈
+void Euler() {
+    stack[++top] = 1;
+    while (top > 0) {
+        int x = stack[top], i = head[x];
+        // 找到一条尚未访问的边
+        while (i && vis[i]) i = Next[i];
+        // 沿着这条边模拟递归过程，标记该边，并更新表头
+        if (i) {
+            stack[++top] = ver[i];
+            head[x] = Next[i];
+            vis[i] = vis[i ^ 1] = true;
+        }		
+        // 与x相连的所有边均已访问，模拟回溯过程，并记录于答案栈中
+        else {
+            top--;
+            ans[++t] = x;
+        }
+    }
+}
+\end{lstlisting}
+例题分析
+
+POJ2230 Watchcow（欧拉回路）

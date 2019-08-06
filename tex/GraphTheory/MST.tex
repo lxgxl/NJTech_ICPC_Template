@@ -1,110 +1,215 @@
 \section{最小生成树}
-\subsection{Prim}
-\begin{lstlisting}
-#define inf 0x3f3f3f3f
-const int N = 2e5 + 20;
-struct node
-{
-    long long u, v, w;
-    node(int uu, int vv, int ww) : u(uu), v(vv), w(ww)
-    {
-    }
-    bool operator<(node n) const
-    {
-        return w > n.w;
-    }
-};
-long long n, m;
-priority_queue<node> q;
-vector<pair<long long, long long>> G[N];
-bool vis[N];
-long long Prim()
-{
-    long long ans = 0;
-    for (auto ele : G[1])
-    {
-        q.push(node(1, ele.first, ele.second));
-    }
-    memset(vis, 0, sizeof(vis));
-    vis[1] = 1;
-    int t = n - 1;
-    while (t--)
-    {
-        node top = q.top();
-        q.pop();
-        while (vis[top.v])
-        {
-            top = q.top();
-            q.pop();
-        }
-        ans += top.w;
-        cout<<ans<<endl;
-        vis[top.v] = 1;
-        for (auto ele : G[top.v])
-        {
-            q.push(node(top.v, ele.first, ele.second));
-        }
-    }
-    return ans;
-}
-\end{lstlisting}
-
 \subsection{Kruskal}
 基于并查集
 \begin{lstlisting}
-const long long MAXN = 2e5 + 20;
-struct Edge
+void Init()
 {
-    long long u, v, w;
-    bool operator<(Edge e) const
-    {
-        return w > e.w;
-    }
-    Edge(long long uu, long long vv, long long ww) : u(uu), v(vv), w(ww)
-    {
-    }
-};
-long long fa[MAXN];
-long long Find(long long x)
-{
-    if (fa[x] == -1)
-        return x;
-    else
-        return fa[x] = Find(fa[x]);
+    for (int i = 1; i <= n; i++)
+        fa[i] = i;
 }
-priority_queue<Edge> q;
-long long n; //点
-long long m; //边
-long long Kruskal()
+int Find(int x)
 {
-    memset(fa, -1, sizeof(fa));
-    long long cnt = 0;
-    long long ans = 0;
-    long long fu, fv;
-    while (!q.empty())
+    if (x == fa[x])
+        return x;
+    return fa[x] = Find(fa[x]);
+}
+void Kruskal()
+{
+    Init();
+    sort(e.begin(), e.end());
+    int ans=0;
+    for (int i = 0; i < e.size(); i++)
     {
-        Edge now = q.top();
-        q.pop();
-        fu = Find(now.u);
-        fv = Find(now.v);
+        int u = e[i].u, v = e[i].v;
+        int fu = Find(u), fv = Find(v);
         if (fu != fv)
         {
-            //cout<<"add:"<<now.u<<" "<<now.v<<" "<<now.w<<endl;
-            ans += now.w;
             fa[fu] = fv;
-            cnt++;
+            ans += e[i].w;
         }
-        if (cnt == n - 1)
-            break;
     }
-    if (cnt < n - 1)
-        return -1;
-    return ans;
 }
 \end{lstlisting}
-\emph{例题：https://loj.ac/problem/123}
+\subsection{Prim}
+\begin{lstlisting}
+void Prim()
+{
+    memset(vis, 0, sizeof(vis));
+    memset(d, 0x3f, sizeof(d));
+    d[1] = 0;
+    int temp = n;
+    int ret = 0;
+    while (temp--)
+    {
+        int min_pos = 0;
+        for (int i = 1; i <= n; i++)
+            if (!vis[i] && (!min_pos || d[i] < d[min_pos]))
+                min_pos = i;
+        if (min_pos)
+        {
+            vis[min_pos] = 1;
+            ret += d[min_pos];
+            for (int i = 1; i <= n; i++)
+                if (!vis[i]) d[i] = min(d[i], weight[min_pos][i]);
+        }
+    }
+}
+\end{lstlisting}
+例题分析
 
-\subsection{次小生成树}
-倍增LCA维护最小生成树\\
-代码过长......\\
-\emph{例题：https://loj.ac/problem/10133}
+走廊泼水节（Kruskal，最小生成树扩充为完全图）
+
+POJ1639 Picnic Planning（度限制最小生成树，连通块，树形DP）
+\begin{lstlisting}
+#include <algorithm>
+#include <cstring>
+#include <iostream>
+#include <map>
+#include <string>
+#include <vector>
+using namespace std;
+#define inf 0x3f3f3f3f
+#define N 25
+#define M 500
+map<string, int> name;
+struct edge
+{
+    int u, v, w;
+    bool operator<(const edge &e) const
+    {
+        return w < e.w;
+    }
+};
+int n, s, ptot = 0, a[N][N], ans, fa[N], d[N], ver[N];
+vector<edge> e;
+bool vis[N][N];
+edge dp[N]; //dp[i]  1...i路径上的最大边
+void Init()
+{
+    for (int i = 1; i <= ptot; i++)
+        fa[i] = i;
+}
+int Find(int x)
+{
+    if (x == fa[x])
+        return x;
+    return fa[x] = Find(fa[x]);
+}
+void Kruskal()
+{
+    Init();
+    sort(e.begin(), e.end());
+    for (int i = 0; i < e.size(); i++)
+    {
+        int u = e[i].u, v = e[i].v;
+        if (u != 1 && v != 1)
+        {
+            int fu = Find(u), fv = Find(v);
+            if (fu != fv)
+            {
+                fa[fu] = fv;
+                vis[u][v] = vis[v][u] = 1;
+                ans += e[i].w;
+            }
+        }
+    }
+}
+void DFS(int cur, int pre)
+{
+    for (int i = 2; i <= ptot; i++)
+    {
+        if (i != pre && vis[cur][i])
+        {
+            if (dp[i].w == -1)
+            {
+                if (dp[cur].w < a[cur][i])
+                {
+                    dp[i].u = cur;
+                    dp[i].v = i;
+                    dp[i].w = a[cur][i];
+                }
+                else
+                    dp[i] = dp[cur];
+            }
+            DFS(i, cur);
+        }
+    }
+}
+int main()
+{
+    ios::sync_with_stdio(false);
+    cin.tie(0);
+    cin >> n;
+    string s1, s2;
+    int len;
+    name["Park"] = ++ptot;
+    memset(a, 0x3f, sizeof(a));
+    memset(d, 0x3f, sizeof(d));
+    //Park：1
+    for (int i = 0; i < n; i++)
+    {
+        cin >> s1 >> s2 >> len;
+        if (!name[s1])
+            name[s1] = ++ptot;
+        if (!name[s2])
+            name[s2] = ++ptot;
+        int u = name[s1], v = name[s2];
+        a[u][v] = a[v][u] = min(a[u][v], len); //无向图邻接矩阵
+        e.push_back({u, v, len});
+    }
+    cin >> s; //度数限制
+    ans = 0;
+    Kruskal();
+    for (int i = 2; i <= ptot; i++)
+    {
+        if (a[1][i] != inf)
+        {
+            int rt = Find(i);
+            if (d[rt] > a[1][i])
+                d[rt] = a[1][i], ver[rt] = i;
+        }
+    }
+    for (int i = 2; i <= ptot; i++)
+    {
+        if (d[i] != inf)
+        {
+            s--;
+            ans += d[i];
+            vis[1][ver[i]] = vis[ver[i]][1] = 1;
+        }
+    }
+    while (s-- > 0)
+    {
+        memset(dp, -1, sizeof(dp));
+        dp[1].w = -inf;
+        for (int i = 2; i <= ptot; i++)
+        {
+            if (vis[1][i])
+                dp[i].w = -inf;
+        }
+        DFS(1, -1);
+        int w = -inf;
+        int v;
+        for (int i = 2; i <= ptot; i++)
+        {
+            if (w < dp[i].w - a[1][i])
+            {
+                w = dp[i].w - a[1][i];
+                v = i;
+            }
+        }
+        if (w <= 0)
+            break;
+        ans -= w;
+        vis[1][v] = vis[v][1] = 1;
+        vis[dp[v].u][dp[v].v] = vis[dp[v].v][dp[v].u] = 0;
+    }
+    cout << "Total miles driven: " << ans << endl;
+    system("pause");
+    return 0;
+}
+\end{lstlisting}
+
+POJ2728 Desert King （最优比率生成树，0/1分数规划，二分）
+
+黑暗城堡（最短路径生成树计数，最短路，排序）
