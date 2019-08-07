@@ -1,49 +1,123 @@
 \section{最短路}
-\subsection{Dijkstra}
-\textbf{非负权图，单源最短路径\\
-\(
-    \bm{O((N+M) \log M)}
-\)
-}
+\subsection{单源最短路径}
+\subsubsection{Dijkstra}
 \begin{lstlisting}
-#define N 100100
-#define ll long long
-#define inf 2147483647
-vector<pair<int, ll>> G[N];
-struct edge
+void Dijkstra()
 {
-    int to;
-    ll weight;
-    edge(int i, ll w) : to(i), weight(w){}
-    bool operator<(const edge &e) const{return weight > e.weight;}
-};
-ll dis[N];
-bool vis[N];
-int n, m, s;
-void Dijkstra(int start)
-{
-    for (int i = 1; i <= n; i++){dis[i] = inf;}
-    priority_queue<edge> q;
-    q.push(edge(start, 0));
-    dis[start] = 0;
+    memset(dist, 0x3f, sizeof(dist));
+    memset(vis, 0, sizeof(vis));
+    priority_queue<pii, vector<pii>, greater<pii>> q;
+    dist[1] = 0;
+    q.push({dist[1], 1});
     while (!q.empty())
     {
-        edge now = q.top();
+        int x = q.top().second;
         q.pop();
-        if (!vis[now.to])
+        if (!vis[x])
         {
-            vis[now.to] = 1;
-            for (auto ele : G[now.to])
+            vis[x] = 1;
+            for (auto it : v[x])
             {
-                if (!vis[ele.first] && now.weight + ele.second < dis[ele.first])
+                int y = it.first;
+                if (dist[y] > dist[x] + it.second)
                 {
-                    dis[ele.first] = now.weight + ele.second;
-                    q.push(edge(ele.first, dis[ele.first]));
+                    dist[y] = dist[x] + it.second;
+                    q.push({dist[y], y});
                 }
             }
         }
     }
 }
 \end{lstlisting}
-\emph{例题：https://www.luogu.org/problemnew/show/P3371\\}
-\emph{例题：https://www.luogu.org/problemnew/show/P4779}
+\subsubsection{Bellman-Ford和SPFA}
+\begin{lstlisting}
+void SPFA()
+{
+    memset(dis, 0x3f, sizeof(dis));
+    memset(vis, 0, sizeof(vis));
+    queue<int> q;
+    dis[1] = 0;
+    vis[1] = 1;
+    q.push(1);
+    while (!q.empty())
+    {
+        int x = q.front();
+        q.pop();
+        vis[x] = 0;
+        for (int i = 0; i < v[x].size(); i++)
+        {
+            int y = v[x][i].first;
+            int z = v[x][i].second;
+            if (dis[y] > dis[x] + z)
+            {
+                dis[y] = dis[x] + z;
+                if (!vis[y])
+                    q.push(y), vis[y] = 1;
+            }
+        }
+    }
+}
+\end{lstlisting}
+例题分析
+
+POJ3662 Telephone Lines（分层图最短路/二分答案，双端队列BFS）
+
+P1073 最优贸易 （原图与反图，枚举节点）
+
+P3008 [USACO11JAN]道路和飞机Roads and Planes（DAG，拓扑序，连通块）
+
+\subsection{任意两点间最短路径}
+\subsubsection{Floyd}
+\begin{lstlisting}
+void get_path(int i, int j)
+{
+    if (!path[i][j])
+        return;
+    get_path(i, path[i][j]);
+    p.push_back(path[i][j]);
+    get_path(path[i][j], j);
+}
+void Floyd()
+{
+    memcpy(d, a, sizeof(d));
+    for (int k = 1; k <= n; k++)
+    {
+        for (int i = 1; i < k; i++)
+        {
+            for (int j = i + 1; j < k; j++)
+            {
+                //注意溢出
+                ll temp = d[i][j] + a[i][k] + a[k][j];
+                if (ans > temp)
+                {
+                    ans = temp;
+                    p.clear();
+                    p.push_back(i);
+                    get_path(i, j);
+                    p.push_back(j);
+                    p.push_back(k);
+                }
+            }
+        }
+        for (int i = 1; i <= n; i++)
+        {
+            for (int j = 1; j <= n; j++)
+            {
+                ll temp = d[i][k] + d[k][j];
+                if (d[i][j] > temp)
+                {
+                    d[i][j] = temp;
+                    path[i][j] = k;
+                }
+            }
+        }
+    }
+}
+\end{lstlisting}
+例题分析
+
+POJ1094 Sorting It All Out（传递闭包）
+
+POJ1734 Sightseeing trip（无向图最小环）
+
+POJ3613 Cow Relays（离散化，广义矩阵乘法，快速幂）

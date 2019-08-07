@@ -6,6 +6,8 @@
 \usepackage{graphicx}
 \usepackage{fancyhdr}
 \usepackage{bm}
+\usepackage{geometry}
+\geometry{left=2.0cm,right=2.0cm,top=2.0cm,bottom=2.0cm}
 \setmonofont{Consolas}
 \setsansfont{Consolas}
 \pagestyle{fancy}
@@ -67,23 +69,20 @@
     %数据结构
 
     \chapter{图论}
-    \include{tex/GraphTheory/MST}
-    \include{tex/GraphTheory/LCA}
-    \include{tex/GraphTheory/StronglyConnected}
     \include{tex/GraphTheory/ShortPath}
-    \include{tex/GraphTheory/NetworkFlows/Maximumflow}
-    %图论
-
-    \chapter{数学}
-    \include{tex/Math/Universal}
-    %数学
-
-    \chapter{计算几何}
-    \include{tex/ComputationalGeometry/}
-    %计算几何
-
-    \chapter{其他}
-    \include{tex/Others/}
-    %其他
-
+    %最短路
+    \include{tex/GraphTheory/MST}
+    %最小生成树
+    \include{tex/GraphTheory/Diameter&LCA}
+    %树的直径与最近公共祖先
+    %基环树
+    \include{tex/GraphTheory/SystemOfDifferenceConstraints}
+    %负环与差分约束
+    \include{tex/GraphTheory/TarjanDCC}
+    %Tarjan算法与无向图连通性
+    \include{tex/GraphTheory/TarjanSCC}
+    %Tarjan算法与有向图连通性
+    %二分图的匹配
+    %二分图的覆盖与独立集
+    %网路流初步
 \end{document}

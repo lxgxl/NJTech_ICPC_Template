@@ -1,0 +1,56 @@
+\section{Tarjan算法与有向图连通性}
+\subsection{强连通分量（SCC）判定法则}
+\begin{lstlisting}
+void Tarjan(int x)
+{
+    dfn[x]=low[x]=++num;
+    stack[++top]=x,in_stack[x]=true;
+    for(int i=head[x];i;i=nxt[i])
+    {
+        int y=ver[i];
+        if(!dfn[y])
+        {
+            Tarjan(y);
+            low[x]=min(low[x],low[y]);
+        }
+        else if(in_stack[y])
+            low[x]=min(low[x],dfn[y]);
+    }
+    if(dfn[x]==low[x])
+    {
+        cnt++;
+        int y;
+        do
+        {
+            y=stack[top--],in_stack[y]=false;
+            color[y]=cnt, scc[cnt].push_back(y);
+        } while (x!=y);
+    }
+}
+\end{lstlisting}
+\subsection{SCC -> DAG}
+\begin{lstlisting}
+void SCC()
+{
+    for (int i = 0; i <= n; i++)
+        if (!dfn[i])
+            Tarjan(i);
+    //缩点
+    for (int x = 1; x <= n; x++)
+    {
+        for (int i = head[x]; i; i = nxt[i])
+        {
+            int y = ver1[i];
+            if (color[x] != color[y])
+                add_c(color[x], color[y]);
+        }
+    }
+}
+\end{lstlisting}
+例题分析
+
+POJ1236 Network of Schools（SCC->DAG，入度出度）
+
+P3275 [SCOI2011]糖果（SPFA TLE，SCC->DAG，Topo，DP）
+
+\subsection{有向图的必经点与必经边}
