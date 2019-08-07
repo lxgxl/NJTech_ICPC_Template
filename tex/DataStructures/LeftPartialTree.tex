@@ -1,0 +1,232 @@
+\section{左偏树}
+	\subsection{模板}	
+\begin{lstlisting}
+const int N = 1e3 + 10;
+struct Node {
+    int k, d, fa, ch[2];  // 键，距离，父亲，左儿子，右儿子
+} t[N];
+
+// 取右子树的标号
+int& rs(int x) {
+    return t[x].ch[t[t[x].ch[1]].d < t[t[x].ch[0]].d];
+}
+
+// 用于删除非根节点后向上更新、
+// 建议单独用，因为需要修改父节点
+void pushup(int x) {
+    if (!x)
+        return;
+    if (t[x].d != t[rs(x)].d + 1) {
+        t[x].d = t[rs(x)].d + 1;
+        pushup(t[x].fa);
+    }
+}
+
+// 整个堆加上、减去一个数或乘上一个整数(不改变相对大小)，类似于lazy标记
+void pushdown(int x) {
+}
+
+// 合并x和y
+int merge(int x, int y) {
+    // 若一个堆为空，则返回另一个堆
+    if (!x || !y)
+        return x | y;
+    // 取较小的作为根
+    if (t[x].k > t[y].k)
+        swap(x, y);
+    // 下传标记，这么写的条件是必须保证堆顶元素时刻都是最新的
+    pushdown(x);
+    // 递归合并右儿子和另一个堆 // 若不满足左偏树性质则交换两儿子 // 更新右子树的父亲，只有右子树有父亲
+    t[rs(x) = merge(rs(x), y)].fa = x;
+    // 更新dist
+    t[x].d = t[rs(x)].d + 1;
+    return x;
+}
+\end{lstlisting}
+
+	\subsection{模板题 P3377 【模板】左偏树（可并堆）}
+		\subsubsection{题目描述}
+			如题，一开始有N个小根堆，每个堆包含且仅包含一个数。接下来需要支持两种操作：\\
+			操作1： 1 x y 将第x个数和第y个数所在的小根堆合并（若第x或第y个数已经被删除或第x和第y个数在用一个堆内，则无视此操作）\\
+			操作2： 2 x 输出第x个数所在的堆最小数，并将其删除（若第x个数已经被删除，则输出-1并无视删除操作）。当堆里有多个最小值时，优先删除原序列的靠前的。
+		\subsubsection{涉及知识点}
+			1. 左偏树的基本操作（合并、删除）\\
+			\textbf{2. 并查集查询结点所在的堆的根}\\\\
+			需要注意的是：\\
+			合并前要检查是否已经在同一堆中。\\
+			左偏树的深度可能达到$O(n)$，因此找一个点所在的堆顶要用并查集维护，不能直接暴力跳父亲。（虽然很多题数据水，暴力跳父亲可以过……）（用并查集维护根时要保证原根指向新根，新根指向自己。）
+		\subsubsection{代码}
+\begin{lstlisting}
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int N = 1e5 + 10;
+
+bitset<N> f;  // 用于标记某个元素是否被删除
+
+// 关键字
+struct Key {
+    int a, b;
+    bool operator<(const Key& rhs) const {
+        if (a != rhs.a)
+            return a < rhs.a;
+        return b < rhs.b;
+    }
+};
+
+// 左偏树节点
+struct Node {
+    Key k;
+    int d, fa, ch[2];
+} t[N];
+
+int& rs(int x) {
+    return t[x].ch[t[t[x].ch[1]].d < t[t[x].ch[0]].d];
+}
+
+int merge(int x, int y) {
+    if (!x || !y)
+        return x | y;
+    if (t[y].k < t[x].k)
+        swap(x, y);
+    t[rs(x) = merge(rs(x), y)].fa = x;
+    t[x].d = t[rs(x)].d + 1;
+    return x;
+}
+
+struct UF {
+    int fa, t;
+} uf[N];  // 并查集
+
+int find(int x) {
+    if (x == uf[x].fa)
+        return x;
+    return uf[x].fa = find(uf[x].fa);
+}
+
+void ufUnion(int x, int y) {
+    x = find(x), y = find(y);
+    uf[y].fa = x;
+}
+
+int main() {
+    ios::sync_with_stdio(0);
+    cin.tie(0);
+
+    int n, m, i, x, y;
+    cin >> n >> m;
+    for (i = 1; i <= n; i++) {
+        cin >> x;
+        uf[i].fa = i, uf[i].t = i;
+        t[i].d = 1, t[i].k = Key({x, i});
+    }
+    for (i = 1; i <= m; i++) {
+        cin >> x;
+        if (x == 1) {
+            cin >> x >> y;
+            if (f.test(x) || f.test(y) || uf[find(x)].t == uf[find(y)].t)
+                continue;
+            int root = merge(uf[find(x)].t, uf[find(y)].t);
+            ufUnion(x, y);
+            uf[find(x)].t = root;
+        } else {
+            cin >> x;
+            if (f.test(x)) {
+                cout << -1 << endl;
+                continue;
+            }
+            cout << t[uf[find(x)].t].k.a << endl;
+            f[t[uf[find(x)].t].k.b] = 1;
+            uf[find(x)].t = merge(t[uf[find(x)].t].ch[0], t[uf[find(x)].t].ch[1]);
+        }
+    }
+
+    return 0;
+}
+\end{lstlisting}
+
+	\subsection{洛谷 P1552 [APIO2012]派遣}
+		\subsubsection{题目描述}
+			题目太长，简述。你有预算m元，给定n个人，具有上下级关系，构成一棵树，每个人有两个参数--花费、领导力。让你选择先选一个点作为领导者，然后在以领导者为根的子树中任意选择一些点(要求花费不超过m)，得到的价值为 领导者的领导力 * 选定的人数。问最大价值为多少？
+		\subsubsection{涉及知识点}
+			树上问题\\
+			可并堆的合并\\
+			\textbf{用堆维护背包}
+		\subsubsection{思路}
+			大根堆中存储每个点的花费。递归地，对于一个点x，我们合并x的所有儿子节点的堆，并计算其总和，如果总和大于m，不断弹出堆顶元素并更新总和，直到总和小于等于m。有点像带反悔的贪心。
+			
+	\subsection{洛谷 P3261 [JLOI2015]城池攻占}
+		\subsubsection{题目描述}
+			你要用 m 个骑士攻占 n 个城池。 n 个城池(1到n)构成了一棵有根树，1号城池为根，其余城池父节点为fi。m 个骑士(1到m)，其中第 i 个骑士的初始战斗力为 si，第一个攻击的城池为 ci。\\
+			每个城池有一个防御值 hi，如果一个骑士的战斗力大于等于城池的生命值，那么骑士就可以占领这座城池；否则占领失败，骑士将在这座城池牺牲。占领一个城池以后，骑士的战斗力将发生变化，然后继续攻击管辖这座城池的城池，直到占领 1 号城池，或牺牲为止。\\
+			除 1 号城池外，每个城池 i 会给出一个战斗力变化参数 ai;vi。若 ai =0，攻占城池 i 以后骑士战斗力会增加 vi；若 ai =1，攻占城池 i 以后，战斗力会乘以 vi。注意每个骑士是单独计算的。也就是说一个骑士攻击一座城池，不管结果如何，均不会影响其他骑士攻击这座城池的结果。\\
+			现在的问题是，对于每个城池，输出有多少个骑士在这里牺牲；对于每个骑士，输出他攻占的城池数量。
+		\subsubsection{涉及知识点}
+			树上问题\\
+			可并堆的合并\\
+			\textbf{堆的整体操作(打标记，pushdown)}
+		\subsubsection{注意}
+			\textbf{打标记之后，应该立即更新被打标记的点，然后pushdown，pushdown总是由父节点发起帮助儿子提前更新。这样，如果某个点有标记，则表示该点本身是最新的，但他应该为儿子更新。也即上一层的标记是为下一层准备的。}
+		\subsubsection{打标记、下传代码}
+\begin{lstlisting}
+// x被打标记，立即更新x的值，并且将标记存放在此(准备之后让pushdown给下一层更新)
+inline void mark(ll x, ll a, ll b) {
+    if (!x)
+        return;
+    t[x].k.s = t[x].k.s * b + a;            // 更新自身
+    t[x].a *= b, t[x].b *= b, t[x].a += a;  // 寄存标记
+}
+
+// 下传标记，本质上就是再给儿子们mark()一下，然后清空自身标记
+inline void pushdown(ll x) {
+    if (!x)
+        return;
+    mark(t[x].ch[0], t[x].a, t[x].b);
+    mark(t[x].ch[1], t[x].a, t[x].b);
+    t[x].a = 0, t[x].b = 1;
+}
+\end{lstlisting}
+
+	\subsection{洛谷 P3273 [SCOI2011]棘手的操作}
+		\subsubsection{题目描述}
+			有N个节点，标号从1到N，这N个节点一开始相互不连通。第i个节点的初始权值为a[i]，接下来有如下一些操作：\\
+			U x y: 加一条边，连接第x个节点和第y个节点\\
+			A1 x v: 将第x个节点的权值增加v\\
+			A2 x v: 将第x个节点所在的连通块的所有节点的权值都增加v\\
+			A3 v: 将所有节点的权值都增加v\\
+			F1 x: 输出第x个节点当前的权值\\
+			F2 x: 输出第x个节点所在的连通块中，权值最大的节点的权值\\
+			F3: 输出所有节点中，权值最大的节点的权值\\
+		\subsubsection{涉及知识点}
+			左偏树\\
+			并查集\\
+			multiset\\
+			整体标记\\
+			\textbf{启发式合并}
+		\subsubsection{思路}
+			这题题如其名，非常棘手。\\
+			首先，找一个节点所在堆的堆顶要用并查集，而不能暴力向上跳。\\
+			再考虑单点查询，若用普通的方法打标记，就得查询点到根路径上的标记之和，最坏情况下可以达到  的复杂度。如果只有堆顶有标记，就可以快速地查询了，但如何做到呢？\\
+			\textbf{可以用类似启发式合并的方式，每次合并的时候把较小的那个堆标记暴力下传到每个节点，然后把较大的堆的标记作为合并后的堆的标记。由于合并后有另一个堆的标记，所以较小的堆下传标记时要下传其标记减去另一个堆的标记。由于每个节点每被合并一次所在堆的大小至少乘二，所以每个节点最多被下放  次标记，暴力下放标记的总复杂度就是$O(n)$。}\\
+			再考虑单点加，先删除，再更新，最后插入即可。\\
+			然后是全局最大值，可以用一个平衡树/支持删除任意节点的堆（如左偏树）/multiset 来维护每个堆的堆顶。\\\\
+			所以，每个操作分别如下：\\
+			1.暴力下传点数较小的堆的标记，合并两个堆，更新 size、tag，在 multiset 中删去合并后不在堆顶的那个原堆顶。\\
+			2.删除节点，更新值，插入回来，更新 multiset。需要分删除节点是否为根来讨论一下。\\
+			3.堆顶打标记，更新 multiset。\\
+			4.打全局标记。\\
+			5.查询值 + 堆顶标记 + 全局标记。\\
+			6.查询根的值 + 堆顶标记 + 全局标记。\\
+			7.查询 multiset 最大值 + 全局标记。
+	\subsection{洛谷 P4331 Sequence 数字序列}
+		\subsubsection{题目描述}
+			这是一道论文题\\
+			给定一个整数序列$a_1, a_2, ... , a_n$，求出一个递增序列$b_1 < b_2 < ... < b_n$，使得序列$a_i$和$b_i$的各项之差的绝对值之和$|a_1 - b_1| + |a_2 - b_2| + ... + |a_n - b_n|$最小。
+		\subsubsection{涉及知识点}
+			堆的合并(因为没有整体标记，所以这里可以用\_\_gnu\_pbds::priority\_queue)\\
+			\textbf{堆维护区间中位数}\\
+			\textbf{递增序列转非递减序列（减下标法）}
+		\subsubsection{思路}
+			递增序列转非递减序列：把a[i]减去i，易知b[i]也减去i后答案不变，本来b要求是递增序列，这样就转化成了不下降序列，方便操作。\\
+			堆维护区间中位数：大根堆，每次合并之后，如果堆内元素个数大于区间的一半，则一直pop直到等于一半，堆顶元素即为中位数。(这么做的前提是中位数大的区间内的最小值小于等于另一个区间内仅比那个区间中位数大的数)
